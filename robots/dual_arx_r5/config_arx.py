@@ -52,11 +52,11 @@ class ArxDualArmConfig(RobotConfig):
     ee_action_filter_alpha_pos: float = 0.35
     ee_action_filter_alpha_rot: float = 0.25
 
-    # Oculus delta ee_pose 死区（避免待机微抖持续下发）
+    # Oculus delta ee_pose 死区（deadzone，避免待机微抖持续下发）
     # 仅当 position/rotation 两个模长都低于阈值时才视为“静止”。
     enable_ee_action_deadband: bool = True
-    ee_action_deadband_pos_norm: float = 0.00035  # m, 约 0.35 mm
-    ee_action_deadband_rot_norm: float = 0.0025   # rad, 约 0.14 deg
+    ee_action_deadband_pos_norm: float = 0.0015   # m, 约 1.5 mm
+    ee_action_deadband_rot_norm: float = 0.01     # rad, 约 0.57 deg
 
     # Cameras
     cameras: dict[str, CameraConfig] = field(default_factory=dict)

@@ -453,25 +453,42 @@ class ArxDualArm(Robot):
         left_delta, left_suppressed = self._apply_delta_deadband(left_delta)
         right_delta, right_suppressed = self._apply_delta_deadband(right_delta)
 
+        left_active = not left_suppressed
+        right_active = not right_suppressed
+
         # 待机抖动: 双臂都在死区时不下发任何 EE 指令，避免误差累积。
-        if left_suppressed and right_suppressed:
+        if not left_active and not right_active:
             return
 
-        # 计算绝对目标位姿: current + delta (纯数学运算, <0.1ms)
-        target_left = _apply_delta_pose(self._cached_left_ee_pose, left_delta)
-        target_right = _apply_delta_pose(self._cached_right_ee_pose, right_delta)
+        # 仅对超过 deadzone 的手臂生成新目标，静止手臂不重复下发位姿指令。
+        target_left = self._cached_left_ee_pose.copy()
+        target_right = self._cached_right_ee_pose.copy()
+        if left_active:
+            target_left = _apply_delta_pose(self._cached_left_ee_pose, left_delta)
+        if right_active:
+            target_right = _apply_delta_pose(self._cached_right_ee_pose, right_delta)
 
         # 发送到服务端, 服务端内置 IK (fire-and-forget, ~3ms RPC)
         t_rpc = time.perf_counter()
-        self._client.set_dual_ee_poses(
-            target_left, target_right,
-            self._last_left_gripper_cmd, self._last_right_gripper_cmd
-        )
-        self._record_latency("rpc_set_dual_ee_poses_ms", (time.perf_counter() - t_rpc) * 1e3)
+        if left_active and right_active:
+            self._client.set_dual_ee_poses(
+                target_left, target_right,
+                self._last_left_gripper_cmd, self._last_right_gripper_cmd
+            )
+            latency_stage = "rpc_set_dual_ee_poses_ms"
+        elif left_active:
+            self._client.set_left_ee_pose(target_left, self._last_left_gripper_cmd)
+            latency_stage = "rpc_set_left_ee_pose_ms"
+        else:
+            self._client.set_right_ee_pose(target_right, self._last_right_gripper_cmd)
+            latency_stage = "rpc_set_right_ee_pose_ms"
+        self._record_latency(latency_stage, (time.perf_counter() - t_rpc) * 1e3)
 
-        # 更新缓存 (下次 delta 基于本次目标位姿叠加)
-        self._cached_left_ee_pose = target_left
-        self._cached_right_ee_pose = target_right
+        # 仅更新本次实际下发过指令的手臂缓存。
+        if left_active:
+            self._cached_left_ee_pose = target_left
+        if right_active:
+            self._cached_right_ee_pose = target_right
 
     def _send_action_joint(self, action: dict[str, Any]) -> None:
         """Direct joint mode: joint positions → RPC (用于 replay)."""
