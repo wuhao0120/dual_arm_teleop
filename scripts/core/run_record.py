@@ -82,18 +82,22 @@ class RecordConfig:
         self.gripper_max_open: float = robot.get("gripper_max_open", 0.085)
         self.gripper_force: float = robot.get("gripper_force", 10.0)
         self.gripper_speed: float = robot.get("gripper_speed", 0.1)
-        self.enable_ee_action_deadband: bool = robot.get(
-            "enable_ee_action_deadzone",
-            robot.get("enable_ee_action_deadband", True),
-        )
-        self.ee_action_deadband_pos_norm: float = robot.get(
-            "ee_action_deadzone_pos_norm",
-            robot.get("ee_action_deadband_pos_norm", 0.0015),
-        )
-        self.ee_action_deadband_rot_norm: float = robot.get(
-            "ee_action_deadzone_rot_norm",
-            robot.get("ee_action_deadband_rot_norm", 0.01),
-        )
+        self.enable_ee_action_deadband = None
+        self.ee_action_deadband_pos_norm = None
+        self.ee_action_deadband_rot_norm = None
+        if self.robot_type == "arx_dual_arm":
+            self.enable_ee_action_deadband = robot.get(
+                "enable_ee_action_deadzone",
+                robot.get("enable_ee_action_deadband", True),
+            )
+            self.ee_action_deadband_pos_norm = robot.get(
+                "ee_action_deadzone_pos_norm",
+                robot.get("ee_action_deadband_pos_norm", 0.0015),
+            )
+            self.ee_action_deadband_rot_norm = robot.get(
+                "ee_action_deadzone_rot_norm",
+                robot.get("ee_action_deadband_rot_norm", 0.01),
+            )
         
         # Task config
         self.num_episodes: int = task.get("num_episodes", 1)

@@ -13,7 +13,7 @@ from lerobot.robots.config import RobotConfig
 class ArxDualArmConfig(RobotConfig):
     """Configuration for ARX R5 dual-arm robot.
 
-    Communication: ZMQ+msgpack RPC to the ARX ROS2 bridge server.
+    Communication: ZeroRPC to the ARX ROS2 bridge server.
     Control: ee_pose mode — 发送绝对末端位姿, 服务端控制器内置 IK.
     Gripper: Integrated, single float 0-1 via set_dual_ee_poses gripper param.
     """
