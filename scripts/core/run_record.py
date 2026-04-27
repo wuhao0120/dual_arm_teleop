@@ -82,6 +82,18 @@ class RecordConfig:
         self.gripper_max_open: float = robot.get("gripper_max_open", 0.085)
         self.gripper_force: float = robot.get("gripper_force", 10.0)
         self.gripper_speed: float = robot.get("gripper_speed", 0.1)
+        self.enable_ee_action_deadband: bool = robot.get(
+            "enable_ee_action_deadzone",
+            robot.get("enable_ee_action_deadband", True),
+        )
+        self.ee_action_deadband_pos_norm: float = robot.get(
+            "ee_action_deadzone_pos_norm",
+            robot.get("ee_action_deadband_pos_norm", 0.0015),
+        )
+        self.ee_action_deadband_rot_norm: float = robot.get(
+            "ee_action_deadzone_rot_norm",
+            robot.get("ee_action_deadband_rot_norm", 0.01),
+        )
         
         # Task config
         self.num_episodes: int = task.get("num_episodes", 1)
@@ -264,8 +276,7 @@ def run_record(record_cfg: RecordConfig):
         teleop_config = record_cfg.create_teleop_config()
         
         # Create robot configuration dynamically based on robot_type
-        robot_config = create_robot_config(
-            record_cfg.robot_type,
+        robot_config_kwargs = dict(
             robot_ip=record_cfg.robot_ip,
             robot_port=record_cfg.robot_port,
             cameras=camera_config,
@@ -278,6 +289,13 @@ def run_record(record_cfg: RecordConfig):
             gripper_reverse=record_cfg.gripper_reverse,
             control_mode=record_cfg.control_mode,
         )
+        if record_cfg.robot_type == "arx_dual_arm":
+            robot_config_kwargs.update(
+                enable_ee_action_deadband=record_cfg.enable_ee_action_deadband,
+                ee_action_deadband_pos_norm=record_cfg.ee_action_deadband_pos_norm,
+                ee_action_deadband_rot_norm=record_cfg.ee_action_deadband_rot_norm,
+            )
+        robot_config = create_robot_config(record_cfg.robot_type, **robot_config_kwargs)
         
         # Initialize the robot dynamically based on robot_type
         robot = create_robot(record_cfg.robot_type, robot_config)

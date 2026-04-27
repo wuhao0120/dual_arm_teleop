@@ -1,5 +1,5 @@
 record:
-  repo_id: &repo_id "test/test"
+  repo_id: &repo_id "WBCD/fold_cloth"
   # Suggested format: <hf_username>/<description>, description = task.description -> Verb_SourceObject_prep_TargetObject
   # e.g. Pick up the green cube and put it into the trash bin -> pick_greencube_into_trashbin
   debug: 0 # if True, robot will not execute any actions, but gripper can still be controlled
@@ -16,7 +16,7 @@ record:
     control_mode: *control_mode
     dual_arm: true  # dual-arm mode
     oculus_config:
-      ip: "192.168.110.62"  # Oculus Quest IP address
+      ip: "192.168.110.43"  # Oculus Quest IP address
       use_gripper: *use_gripper
       # --- ARX R5 scalers/signs ---
       left_pose_scaler: [2.5, 2.5]   # left arm scaler [position, orientation]
@@ -57,6 +57,9 @@ record:
     use_gripper: *use_gripper
     gripper_reverse: false      # ARX integrated gripper, 0=open 1=closed
     close_threshold: 0.5
+    enable_ee_action_deadzone: true   # deadzone: 变化超过阈值才发送末端位姿指令
+    ee_action_deadzone_pos_norm: 0.002  # m, 建议先从 1.5 mm 开始
+    ee_action_deadzone_rot_norm: 0.01    # rad, 约 0.57 deg
     # Note: gripper_ip/port/max_open/force/speed are ignored for ARX (gripper is integrated)
 
   policy:
@@ -99,7 +102,7 @@ record:
     push_to_hub: False # whether to push the dataset to your huggingface repo after recording
 
 replay:
-  dataset_name: dual_dobot/milk_shake_3_15_step1_20260315_v08
+  dataset_name: test/test_20260424_v08
   episode_idx: 0 # episode index to replay
   robot_type: *robot_type  # robot type to use for replay
   robot:
@@ -110,4 +113,3 @@ replay:
 visualize:
   dataset_name: dual_dobot/milk_shake_3_15_step1_20260315_v08
   episode_index: 0 # episode index to visualize
-
